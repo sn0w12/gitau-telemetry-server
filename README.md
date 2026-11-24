@@ -6,11 +6,12 @@ Anonymous telemetry ingest and read API for the gitau desktop client.
 
 Deploy `docker-compose.yml` with Docker Compose and set:
 
-| Variable            | Purpose                       |
-| ------------------- | ----------------------------- |
-| `POSTGRES_PASSWORD` | Database password             |
-| `ADMIN_PASSWORD`    | Basic auth password           |
-| `ADMIN_USER`        | Optional, defaults to `admin` |
+| Variable            | Purpose                             |
+| ------------------- | ----------------------------------- |
+| `POSTGRES_PASSWORD` | Database password                   |
+| `ADMIN_PASSWORD`    | Basic auth password                 |
+| `ADMIN_USER`        | Optional, defaults to `admin`       |
+| `CADDY_PORT`        | Optional host port, defaults to `80` |
 
 Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
 hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`
