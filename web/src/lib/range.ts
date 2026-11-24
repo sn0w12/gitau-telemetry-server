@@ -27,7 +27,8 @@ export function bucketForRange(key: RangeKey): "minute" | "hour" | "day" {
 }
 
 export function makeRange(key: RangeKey): RangeSelection {
-    const option = RANGE_OPTIONS.find((entry) => entry.key === key) ?? RANGE_OPTIONS[1];
+    const option =
+        RANGE_OPTIONS.find((entry) => entry.key === key) ?? RANGE_OPTIONS[1];
     const to = new Date();
     const from = new Date(to.getTime() - option.durationMs);
     return {

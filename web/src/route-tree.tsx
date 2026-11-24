@@ -1,4 +1,9 @@
-import { Link, createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import {
+    Link,
+    createRootRoute,
+    createRoute,
+    createRouter,
+} from "@tanstack/react-router";
 
 import { RootLayout } from "@/components/layout";
 import { EmptyBlock } from "@/components/states";

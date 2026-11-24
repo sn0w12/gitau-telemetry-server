@@ -224,7 +224,6 @@ export function TelemetryChart({
                         axis: false,
                     },
                     y: { scale: scaleLinear, axis: false },
-
                 },
                 gradients: [
                     {

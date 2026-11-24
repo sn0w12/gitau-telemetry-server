@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 export function SegmentedControl<Value extends string>({
     value,
     onValueChange,
-    size = "default",
     className,
     children,
     ...props
@@ -31,7 +30,6 @@ export function SegmentedControl<Value extends string>({
 > & {
     value: Value;
     onValueChange: (value: Value) => void;
-    size?: SegmentedControlSize;
     children: ReactNode;
 }) {
     const rootRef = useRef<HTMLDivElement>(null);

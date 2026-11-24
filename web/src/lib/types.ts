@@ -26,14 +26,7 @@ export type GroupBy =
     | "cpu"
     | "buildProfile";
 
-export type SpanSort =
-    | "name"
-    | "calls"
-    | "avg"
-    | "p50"
-    | "p95"
-    | "p99"
-    | "max";
+export type SpanSort = "name" | "calls" | "avg" | "p50" | "p95" | "p99" | "max";
 
 export type SortDirection = "asc" | "desc";
 

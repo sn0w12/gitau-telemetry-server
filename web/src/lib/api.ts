@@ -133,10 +133,10 @@ export function fetchSpanWaterfall(
     name: string,
     range: TimeRange
 ): Promise<AverageWaterfall> {
-    return get(
-        `/v1/admin/spans/${encodeURIComponent(name)}/waterfall`,
-        { from: range.from, to: range.to }
-    );
+    return get(`/v1/admin/spans/${encodeURIComponent(name)}/waterfall`, {
+        from: range.from,
+        to: range.to,
+    });
 }
 
 export function fetchTrace(id: number): Promise<TraceDetail> {

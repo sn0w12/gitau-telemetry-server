@@ -37,7 +37,9 @@ export function useTheme(): {
     toggle: () => void;
 } {
     const [mode, setModeState] = useState<ThemeMode>(readMode);
-    const [resolved, setResolved] = useState<ResolvedTheme>(() => resolve(readMode()));
+    const [resolved, setResolved] = useState<ResolvedTheme>(() =>
+        resolve(readMode())
+    );
 
     useEffect(() => {
         const media = window.matchMedia("(prefers-color-scheme: dark)");

@@ -66,4 +66,9 @@ GET  /healthz
 cargo fmt --all --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
+
+cd web
+npm run format:check
+npm run lint
+npm run typecheck
 ```

@@ -96,7 +96,10 @@ export function SystemPage() {
     if (query.isPending) return <SystemSkeleton />;
     if (query.error) {
         return (
-            <QueryError error={query.error} retry={() => void query.refetch()} />
+            <QueryError
+                error={query.error}
+                retry={() => void query.refetch()}
+            />
         );
     }
 

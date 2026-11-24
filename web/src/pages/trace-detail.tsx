@@ -81,7 +81,10 @@ export function TraceDetailPage() {
     }
     if (query.error) {
         return (
-            <QueryError error={query.error} retry={() => void query.refetch()} />
+            <QueryError
+                error={query.error}
+                retry={() => void query.refetch()}
+            />
         );
     }
 
@@ -99,10 +102,7 @@ export function TraceDetailPage() {
         ["Build", displayLabel(detail.buildProfile)],
     ];
     if ((trace.droppedSpans ?? 0) > 0) {
-        details.push([
-            "Dropped spans",
-            formatCount(trace.droppedSpans ?? 0),
-        ]);
+        details.push(["Dropped spans", formatCount(trace.droppedSpans ?? 0)]);
     }
 
     const copy = async () => {
