@@ -11,14 +11,15 @@ Deploy `docker-compose.yml` with Docker Compose and set:
 | `POSTGRES_PASSWORD`     | Database password                                                 |
 | `ADMIN_PASSWORD`        | Basic auth password                                               |
 | `ADMIN_USER`            | Optional, defaults to `admin`                                     |
+| `API_TOKEN`             | Optional bearer token for `/v1/admin/*`; empty disables it        |
 | `CADDY_PORT`            | Optional host port, defaults to `80`                              |
 | `ALLOW_DEBUG_TELEMETRY` | Optional, accepts debug builds when `1` or `true`; off by default |
 | `LOG_FORMAT`            | Optional, `text` (default) or `json` for log collectors           |
 
 Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
 hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`
-requires basic auth; `/v1/batches` stays public for ingest. Rebuild the Caddy
-image after changing `web/`.
+accepts either basic auth or `Authorization: Bearer $API_TOKEN`; `/v1/batches`
+stays public for ingest. Rebuild the Caddy image after changing `web/`.
 
 ## Local development
 
@@ -66,6 +67,13 @@ GET  /healthz
 
 `POST /v1/batches` returns 400 for batches whose `buildProfile` is `debug` or
 `dev` unless `ALLOW_DEBUG_TELEMETRY` is enabled.
+
+Admin endpoints accept a bearer token instead of basic auth:
+
+```bash
+curl -H "Authorization: Bearer $API_TOKEN" \
+  'https://telemetry.example.com/v1/admin/overview'
+```
 
 ## Checks
 

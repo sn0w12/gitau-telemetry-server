@@ -23,6 +23,17 @@
 		reverse_proxy server:8080
 	}
 
+	@api_token {
+		path /v1/admin/*
+		header Authorization "Bearer {$API_TOKEN}"
+	}
+
+	handle @api_token {
+		reverse_proxy server:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
 	handle /v1/admin/* {
 		basic_auth {
 			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}

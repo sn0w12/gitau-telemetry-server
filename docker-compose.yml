@@ -59,6 +59,7 @@ services:
     environment:
       ADMIN_USER: ${ADMIN_USER:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      API_TOKEN: ${API_TOKEN:-}
       CADDY_SITE_ADDRESS: ${CADDY_SITE_ADDRESS:-:80}
     expose:
       - "80"
