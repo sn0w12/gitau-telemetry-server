@@ -28,9 +28,9 @@ type NavTo = "/" | "/spans" | "/errors" | "/traces" | "/system";
 
 const NAV: { to: NavTo; label: string; icon: LucideIcon }[] = [
     { to: "/", label: "Overview", icon: LayoutDashboard },
+    { to: "/traces", label: "Traces", icon: Waypoints },
     { to: "/spans", label: "Spans", icon: ChartNoAxesColumn },
     { to: "/errors", label: "Errors", icon: TriangleAlert },
-    { to: "/traces", label: "Traces", icon: Waypoints },
     { to: "/system", label: "System", icon: ServerCog },
 ];
 
@@ -68,9 +68,7 @@ function AdminSidebar({ pathname }: { pathname: string }) {
                         <SidebarMenuButton
                             onClick={toggle}
                             tooltip={
-                                resolved === "dark"
-                                    ? "Light mode"
-                                    : "Dark mode"
+                                resolved === "dark" ? "Light mode" : "Dark mode"
                             }
                             variant="ghost"
                         >
