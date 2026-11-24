@@ -4,7 +4,7 @@ Anonymous telemetry ingest and read API for the gitau desktop client.
 
 ## Deployment
 
-Deploy `deploy/docker-compose.yml` with Docker Compose and set:
+Deploy `docker-compose.yml` with Docker Compose and set:
 
 | Variable            | Purpose                       |
 | ------------------- | ----------------------------- |
