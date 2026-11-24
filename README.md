@@ -13,6 +13,7 @@ Deploy `docker-compose.yml` with Docker Compose and set:
 | `ADMIN_USER`            | Optional, defaults to `admin`                                     |
 | `CADDY_PORT`            | Optional host port, defaults to `80`                              |
 | `ALLOW_DEBUG_TELEMETRY` | Optional, accepts debug builds when `1` or `true`; off by default |
+| `LOG_FORMAT`            | Optional, `text` (default) or `json` for log collectors           |
 
 Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
 hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`

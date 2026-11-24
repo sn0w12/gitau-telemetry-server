@@ -4,11 +4,14 @@ mod error;
 mod ingest;
 mod rate_limit;
 
+use std::io::IsTerminal;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use axum::extract::{DefaultBodyLimit, State};
+use axum::extract::{DefaultBodyLimit, Request, State};
+use axum::middleware::{self, Next};
+use axum::response::Response;
 use axum::routing::{get, post};
 use axum::Router;
 use chrono::Utc;
@@ -18,8 +21,7 @@ use tokio::net::TcpListener;
 use tower_http::compression::CompressionLayer;
 use tower_http::decompression::RequestDecompressionLayer;
 use tower_http::limit::RequestBodyLimitLayer;
-use tower_http::trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer};
-use tracing::Level;
+use tracing::Instrument;
 use tracing_subscriber::filter::EnvFilter;
 
 use crate::config::Config;
@@ -85,15 +87,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .layer(RequestBodyLimitLayer::new(config.max_body_bytes))
         .layer(RequestDecompressionLayer::new())
         .layer(CompressionLayer::new())
-        .layer(
-            TraceLayer::new_for_http()
-                .make_span_with(
-                    DefaultMakeSpan::new()
-                        .include_headers(false)
-                        .level(Level::INFO),
-                )
-                .on_response(DefaultOnResponse::new().level(Level::INFO)),
-        )
+        .layer(middleware::from_fn(log_request))
         .with_state(state);
 
     let listener = TcpListener::bind(config.bind_addr).await?;
@@ -107,6 +101,35 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
     .await?;
 
     Ok(())
+}
+
+async fn log_request(request: Request, next: Next) -> Response {
+    if request.uri().path() == "/healthz" {
+        return next.run(request).await;
+    }
+
+    let method = request.method().clone();
+    let path = request.uri().path().to_owned();
+    let span = tracing::info_span!("request", %method, %path);
+
+    async move {
+        let started = Instant::now();
+        let response = next.run(request).await;
+        let status = response.status().as_u16();
+        let latency_ms = started.elapsed().as_millis();
+
+        if status >= 500 {
+            tracing::error!(status, latency_ms, "FAILED");
+        } else if status >= 400 {
+            tracing::warn!(status, latency_ms, "REJECTED");
+        } else {
+            tracing::info!(status, latency_ms, "COMPLETED");
+        }
+
+        response
+    }
+    .instrument(span)
+    .await
 }
 
 async fn health(State(state): State<AppState>) -> Result<&'static str, ApiError> {
@@ -180,9 +203,18 @@ async fn shutdown_signal() {
 
 fn init_tracing() {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    tracing_subscriber::fmt()
-        .json()
-        .with_env_filter(filter)
-        .with_current_span(false)
-        .init();
+    let json = std::env::var("LOG_FORMAT")
+        .map(|value| value.eq_ignore_ascii_case("json"))
+        .unwrap_or(false);
+
+    let builder = tracing_subscriber::fmt().with_env_filter(filter);
+
+    if json {
+        builder.json().with_current_span(false).init();
+    } else {
+        builder
+            .with_target(false)
+            .with_ansi(std::io::stdout().is_terminal())
+            .init();
+    }
 }
