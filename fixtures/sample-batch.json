@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "createdAtUnixMs": 1795543524954,
+  "context": {
+    "appVersion": "0.3.0",
+    "buildProfile": "debug",
+    "os": "windows",
+    "arch": "x86_64",
+    "cpuTier": "very_high"
+  },
+  "traces": [
+    {
+      "startUnixMs": 1795543524847,
+      "durationUs": 95129,
+      "droppedSpans": 0,
+      "root": {
+        "name": "load_repository",
+        "startUs": 0,
+        "durationUs": 95129,
+        "attributes": {
+          "files": 137,
+          "objects": 46,
+          "rendered_bytes": 348
+        },
+        "error": {
+          "code": "object_store.read_failed",
+          "kind": "waterfall::DemoError",
+          "message": "could not read <path>"
+        },
+        "children": [
+          {
+            "name": "read_index",
+            "startUs": 1,
+            "durationUs": 28178,
+            "attributes": {
+              "index_entries": 137
+            },
+            "children": [
+              {
+                "name": "sleep",
+                "startUs": 5,
+                "durationUs": 28162
+              }
+            ]
+          },
+          {
+            "name": "parse_packfile",
+            "startUs": 28181,
+            "durationUs": 40774,
+            "attributes": {
+              "packed_objects": 46
+            },
+            "children": [
+              {
+                "name": "scan_objects",
+                "startUs": 37363,
+                "durationUs": 31591,
+                "attributes": {
+                  "checksum": 2057,
+                  "objects": 46
+                },
+                "children": [
+                  {
+                    "name": "hash_objects",
+                    "startUs": 56488,
+                    "durationUs": 12450,
+                    "attributes": {
+                      "objects_hashed": 46
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "render_diff",
+            "startUs": 68956,
+            "durationUs": 26119,
+            "attributes": {
+              "chunks": 2,
+              "rendered_bytes": 348
+            },
+            "children": [
+              {
+                "name": "render_hunk",
+                "startUs": 85100,
+                "durationUs": 2521,
+                "attributes": {
+                  "hunk": 0
+                }
+              },
+              {
+                "name": "render_hunk",
+                "startUs": 87622,
+                "durationUs": 7447,
+                "attributes": {
+                  "hunk": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "startUnixMs": 1795543524942,
+      "durationUs": 12064,
+      "droppedSpans": 0,
+      "root": {
+        "name": "startup.maintenance",
+        "startUs": 0,
+        "durationUs": 12064,
+        "attributes": {
+          "cache_entries": 42
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "droppedTraces": 0
+}

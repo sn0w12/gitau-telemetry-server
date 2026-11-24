@@ -1,0 +1,11 @@
+[package]
+name = "telemetry-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Wire types and validation for anonymous telemetry batches"
+
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true

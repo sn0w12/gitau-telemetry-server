@@ -1,0 +1,50 @@
+{
+	servers {
+		trusted_proxies static private_ranges
+	}
+	log {
+		level ERROR
+	}
+}
+
+{$CADDY_SITE_ADDRESS} {
+	encode zstd gzip
+
+	handle /v1/batches {
+		request_body {
+			max_size 1MB
+		}
+		reverse_proxy server:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
+	handle /healthz {
+		reverse_proxy server:8080
+	}
+
+	handle /v1/admin/* {
+		basic_auth {
+			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+		}
+		reverse_proxy server:8080 {
+			header_up X-Forwarded-For {client_ip}
+		}
+	}
+
+	handle {
+		basic_auth {
+			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+		}
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		-Server
+	}
+}
