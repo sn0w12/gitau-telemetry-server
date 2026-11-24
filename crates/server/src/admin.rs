@@ -104,6 +104,15 @@ pub struct Overview {
     os: Vec<Bucket>,
     arch: Vec<Bucket>,
     cpu_tiers: Vec<Bucket>,
+    slowest_traces: Vec<TraceRootBucket>,
+}
+
+#[derive(Debug, Serialize, FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceRootBucket {
+    root: String,
+    traces: i64,
+    avg_us: f64,
 }
 
 #[derive(Debug, Serialize, FromRow)]
@@ -311,7 +320,18 @@ pub async fn overview(
 ) -> Result<Json<Overview>, ApiError> {
     let (from, to) = parse_range(query.from.as_deref(), query.to.as_deref())?;
 
-    let (batches, traces, spans, errors, versions, build_profiles, os, arch, cpu_tiers) = tokio::try_join!(
+    let (
+        batches,
+        traces,
+        spans,
+        errors,
+        versions,
+        build_profiles,
+        os,
+        arch,
+        cpu_tiers,
+        slowest_traces,
+    ) = tokio::try_join!(
         count_batches(&state.pool, from, to),
         count_traces(&state.pool, from, to),
         count_spans(&state.pool, from, to),
@@ -321,6 +341,7 @@ pub async fn overview(
         bucket_traces(&state.pool, from, to, "os"),
         bucket_traces(&state.pool, from, to, "arch"),
         bucket_traces(&state.pool, from, to, "cpu_tier"),
+        slowest_trace_roots(&state.pool, from, to, 6),
     )?;
 
     let error_rate = if traces == 0 {
@@ -342,6 +363,7 @@ pub async fn overview(
         os,
         arch,
         cpu_tiers,
+        slowest_traces,
     }))
 }
 
@@ -801,6 +823,30 @@ async fn count_errors(
         .bind(to)
         .fetch_one(pool)
         .await
+}
+
+async fn slowest_trace_roots(
+    pool: &sqlx::PgPool,
+    from: DateTime<Utc>,
+    to: DateTime<Utc>,
+    limit: i64,
+) -> Result<Vec<TraceRootBucket>, sqlx::Error> {
+    sqlx::query_as::<_, TraceRootBucket>(
+        "select
+            root,
+            count(*)::bigint as traces,
+            coalesce(avg(duration_us), 0)::float8 as avg_us
+         from traces
+         where received_at >= $1 and received_at < $2
+         group by root
+         order by avg_us desc, root
+         limit $3",
+    )
+    .bind(from)
+    .bind(to)
+    .bind(limit)
+    .fetch_all(pool)
+    .await
 }
 
 async fn bucket_traces(

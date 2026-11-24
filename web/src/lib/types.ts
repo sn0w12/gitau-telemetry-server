@@ -16,6 +16,13 @@ export interface Overview {
     os: Bucket[];
     arch: Bucket[];
     cpuTiers: Bucket[];
+    slowestTraces: TraceRootBucket[];
+}
+
+export interface TraceRootBucket {
+    root: string;
+    traces: number;
+    avgUs: number;
 }
 
 export type GroupBy =

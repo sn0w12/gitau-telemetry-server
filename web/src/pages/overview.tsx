@@ -26,7 +26,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { fetchOverview, fetchSeries, fetchSpans, fetchTraces } from "@/lib/api";
+import { fetchOverview, fetchSeries, fetchTraces } from "@/lib/api";
 import {
     displayLabel,
     formatChartLabel,
@@ -150,7 +150,7 @@ function OverviewSkeleton() {
             </Frame>
 
             <Frame className="gap-1">
-                <FrameSection panelClassName="p-0" title="Slowest spans">
+                <FrameSection panelClassName="p-0" title="Slowest traces">
                     <div className="flex flex-col">
                         {Array.from({ length: 6 }).map((_, index) => (
                             <div
@@ -198,17 +198,6 @@ export function OverviewPage() {
         queryFn: () => fetchSeries(selection, bucket),
         placeholderData: keepPreviousData,
     });
-    const spans = useQuery({
-        queryKey: ["spans", selection.from, selection.to, "name"],
-        queryFn: () =>
-            fetchSpans({
-                ...selection,
-                groupBy: "name",
-                name: "",
-                version: "",
-            }),
-        placeholderData: keepPreviousData,
-    });
     const recent = useQuery({
         queryKey: ["traces", "recent", selection.from, selection.to],
         queryFn: () =>
@@ -233,12 +222,7 @@ export function OverviewPage() {
         />
     );
 
-    if (
-        overview.isPending ||
-        series.isPending ||
-        spans.isPending ||
-        recent.isPending
-    ) {
+    if (overview.isPending || series.isPending || recent.isPending) {
         return (
             <div className="mx-auto flex w-full max-w-6xl flex-col">
                 {toolbar}
@@ -247,22 +231,16 @@ export function OverviewPage() {
         );
     }
 
-    if (overview.error || series.error || spans.error || recent.error) {
+    if (overview.error || series.error || recent.error) {
         return (
             <div className="mx-auto flex w-full max-w-6xl flex-col">
                 {toolbar}
                 <div className="px-2 pb-2">
                     <QueryError
-                        error={
-                            overview.error ??
-                            series.error ??
-                            spans.error ??
-                            recent.error
-                        }
+                        error={overview.error ?? series.error ?? recent.error}
                         retry={() => {
                             void overview.refetch();
                             void series.refetch();
-                            void spans.refetch();
                             void recent.refetch();
                         }}
                     />
@@ -287,10 +265,7 @@ export function OverviewPage() {
         (max, point) => Math.max(max, point.p95Us ?? 0),
         0
     );
-    const slowest = (spans.data?.rows ?? [])
-        .slice()
-        .sort((left, right) => right.p95Us - left.p95Us)
-        .slice(0, 6);
+    const slowest = data.slowestTraces;
     const charts = [
         {
             title: "Traffic",
@@ -390,38 +365,39 @@ export function OverviewPage() {
                         aside={
                             <Link
                                 className="flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
-                                to="/spans"
+                                to="/traces"
                             >
-                                All spans
+                                All traces
                                 <ArrowUpRight className="size-3" />
                             </Link>
                         }
                         panelClassName="p-0"
-                        title="Slowest spans"
+                        title="Slowest traces"
                     >
                         {slowest.length === 0 ? (
                             <div className="px-3 py-6 text-center text-xs text-muted-foreground">
-                                No spans in this range.
+                                No traces in this range.
                             </div>
                         ) : (
                             <div className="flex flex-col overflow-hidden rounded-[inherit]">
-                                {slowest.map((row) => (
-                                    <Link
-                                        className="flex items-center gap-3 border-b px-3 py-2 text-xs last:border-b-0 hover:bg-muted"
-                                        key={row.bucket}
-                                        params={{ spanName: row.bucket }}
-                                        to="/spans/$spanName"
+                                {slowest.map((bucket) => (
+                                    <div
+                                        className="flex items-center gap-3 border-b px-3 py-2 text-xs last:border-b-0"
+                                        key={bucket.root}
                                     >
                                         <span className="min-w-0 flex-1 truncate font-mono">
-                                            {row.bucket}
+                                            {bucket.root}
                                         </span>
-                                        <span className="text-muted-foreground tabular-nums">
-                                            {formatCount(row.calls)} calls
+                                        <span className="shrink-0 text-muted-foreground tabular-nums">
+                                            {formatCount(bucket.traces)} traces
                                         </span>
-                                        <span className="font-mono tabular-nums">
-                                            {formatDuration(row.p95Us)}
+                                        <span className="w-20 text-right font-mono tabular-nums">
+                                            <span className="text-muted-foreground">
+                                                avg{" "}
+                                            </span>
+                                            {formatDuration(bucket.avgUs)}
                                         </span>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         )}
