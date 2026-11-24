@@ -15,6 +15,7 @@ pub struct Config {
     pub max_body_bytes: usize,
     pub rate_limit_per_minute: u32,
     pub migrate_on_start: bool,
+    pub allow_debug_telemetry: bool,
 }
 
 #[derive(Debug, Error)]
@@ -40,6 +41,7 @@ impl Config {
         let max_body_bytes = parse_env("MAX_BODY_BYTES", 8 * 1024 * 1024usize)?;
         let rate_limit_per_minute = parse_env("RATE_LIMIT_PER_MINUTE", 120u32)?;
         let migrate_on_start = parse_bool("MIGRATE_ON_START", true)?;
+        let allow_debug_telemetry = parse_bool("ALLOW_DEBUG_TELEMETRY", false)?;
 
         Ok(Self {
             bind_addr,
@@ -49,6 +51,7 @@ impl Config {
             max_body_bytes,
             rate_limit_per_minute,
             migrate_on_start,
+            allow_debug_telemetry,
         })
     }
 }

@@ -6,12 +6,13 @@ Anonymous telemetry ingest and read API for the gitau desktop client.
 
 Deploy `docker-compose.yml` with Docker Compose and set:
 
-| Variable            | Purpose                             |
-| ------------------- | ----------------------------------- |
-| `POSTGRES_PASSWORD` | Database password                   |
-| `ADMIN_PASSWORD`    | Basic auth password                 |
-| `ADMIN_USER`        | Optional, defaults to `admin`       |
-| `CADDY_PORT`        | Optional host port, defaults to `80` |
+| Variable                | Purpose                                                           |
+| ----------------------- | ----------------------------------------------------------------- |
+| `POSTGRES_PASSWORD`     | Database password                                                 |
+| `ADMIN_PASSWORD`        | Basic auth password                                               |
+| `ADMIN_USER`            | Optional, defaults to `admin`                                     |
+| `CADDY_PORT`            | Optional host port, defaults to `80`                              |
+| `ALLOW_DEBUG_TELEMETRY` | Optional, accepts debug builds when `1` or `true`; off by default |
 
 Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
 hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`
@@ -31,6 +32,7 @@ docker run --rm -d --name telemetry-db \
 ```bash
 export PGHOST=127.0.0.1 PGPORT=15432 PGUSER=postgres PGPASSWORD=test PGDATABASE=telemetry
 export BIND_ADDR=127.0.0.1:18080
+export ALLOW_DEBUG_TELEMETRY=1
 cargo run -p telemetry-server
 ```
 
@@ -60,6 +62,9 @@ GET  /v1/admin/{overview,series,spans,errors,traces,system}
 GET  /v1/admin/traces/{id}
 GET  /healthz
 ```
+
+`POST /v1/batches` returns 400 for batches whose `buildProfile` is `debug` or
+`dev` unless `ALLOW_DEBUG_TELEMETRY` is enabled.
 
 ## Checks
 

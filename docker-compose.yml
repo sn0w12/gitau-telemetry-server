@@ -36,6 +36,7 @@ services:
       BIND_ADDR: 0.0.0.0:8080
       RETENTION_DAYS: ${RETENTION_DAYS:-90}
       RATE_LIMIT_PER_MINUTE: ${RATE_LIMIT_PER_MINUTE:-120}
+      ALLOW_DEBUG_TELEMETRY: ${ALLOW_DEBUG_TELEMETRY:-0}
       RUST_LOG: ${RUST_LOG:-info}
     read_only: true
     tmpfs:

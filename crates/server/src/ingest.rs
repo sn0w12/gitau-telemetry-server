@@ -56,6 +56,13 @@ pub async fn ingest(
         .map_err(|error| ApiError::BadRequest(format!("invalid JSON: {error}")))?;
     batch.validate()?;
 
+    if !state.allow_debug_telemetry && is_debug_build(&batch.context.build_profile) {
+        return Err(ApiError::BadRequest(format!(
+            "build profile `{}` is not accepted; set ALLOW_DEBUG_TELEMETRY=1 to accept debug telemetry",
+            batch.context.build_profile
+        )));
+    }
+
     let payload =
         serde_json::to_value(&batch).map_err(|error| ApiError::Internal(error.to_string()))?;
     let batch_id = Uuid::now_v7();
@@ -284,6 +291,11 @@ async fn insert_errors(
     Ok(())
 }
 
+fn is_debug_build(profile: &str) -> bool {
+    let name = profile.trim().to_ascii_lowercase();
+    matches!(name.split(['-', '_']).next(), Some("debug" | "dev"))
+}
+
 fn client_ip(headers: &HeaderMap, peer: IpAddr) -> IpAddr {
     headers
         .get("x-forwarded-for")
@@ -296,6 +308,17 @@ fn client_ip(headers: &HeaderMap, peer: IpAddr) -> IpAddr {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn detects_debug_build_profiles() {
+        assert!(is_debug_build("debug"));
+        assert!(is_debug_build(" Debug "));
+        assert!(is_debug_build("dev"));
+        assert!(is_debug_build("debug-fast"));
+        assert!(!is_debug_build("release"));
+        assert!(!is_debug_build("released"));
+        assert!(!is_debug_build(""));
+    }
 
     #[test]
     fn falls_back_to_the_peer_address() {

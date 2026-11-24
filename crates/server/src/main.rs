@@ -32,6 +32,7 @@ pub struct AppState {
     pub rate_limiter: Arc<RateLimiter>,
     pub max_body_bytes: usize,
     pub retention_days: i64,
+    pub allow_debug_telemetry: bool,
 }
 
 #[tokio::main]
@@ -63,6 +64,7 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         rate_limiter: Arc::new(RateLimiter::new(config.rate_limit_per_minute)),
         max_body_bytes: config.max_body_bytes,
         retention_days: config.retention_days,
+        allow_debug_telemetry: config.allow_debug_telemetry,
     };
 
     let app = Router::new()
