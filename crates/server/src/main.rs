@@ -31,6 +31,7 @@ pub struct AppState {
     pub pool: PgPool,
     pub rate_limiter: Arc<RateLimiter>,
     pub max_body_bytes: usize,
+    pub retention_days: i64,
 }
 
 #[tokio::main]
@@ -61,13 +62,19 @@ async fn run() -> Result<(), Box<dyn std::error::Error>> {
         pool,
         rate_limiter: Arc::new(RateLimiter::new(config.rate_limit_per_minute)),
         max_body_bytes: config.max_body_bytes,
+        retention_days: config.retention_days,
     };
 
     let app = Router::new()
         .route("/healthz", get(health))
         .route("/v1/batches", post(ingest::ingest))
         .route("/v1/admin/overview", get(admin::overview))
+        .route("/v1/admin/series", get(admin::series))
         .route("/v1/admin/spans", get(admin::span_summary))
+        .route(
+            "/v1/admin/spans/{name}/waterfall",
+            get(admin::span_waterfall),
+        )
         .route("/v1/admin/errors", get(admin::error_summary))
         .route("/v1/admin/traces", get(admin::trace_page))
         .route("/v1/admin/traces/{id}", get(admin::trace_detail))

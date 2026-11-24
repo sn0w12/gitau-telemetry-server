@@ -1,18 +1,14 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Telemetry</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="color-scheme" content="light dark" />
+        <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
+        <title>gitau telemetry</title>
     </head>
     <body>
-        <main>
-            <h1>Telemetry admin</h1>
-            <p>Place the built admin UI in this directory.</p>
-            <p>
-                The API lives under <code>/v1/admin</code> and requires the
-                basic auth configured in the Caddyfile.
-            </p>
-        </main>
+        <div id="root"></div>
+        <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>

@@ -29,6 +29,10 @@ impl RateLimiter {
         }
     }
 
+    pub fn limit(&self) -> u32 {
+        self.limit
+    }
+
     pub fn check(&self, ip: IpAddr) -> bool {
         let now = Instant::now();
         let mut state = self

@@ -13,8 +13,9 @@ Deploy `deploy/docker-compose.yml` with Docker Compose and set:
 | `ADMIN_USER`        | Optional, defaults to `admin` |
 
 Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
-hashes `ADMIN_PASSWORD` at startup. Rebuild the
-Caddy image after changing `web/`.
+hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`
+requires basic auth; `/v1/batches` stays public for ingest. Rebuild the Caddy
+image after changing `web/`.
 
 ## Local development
 
@@ -34,6 +35,16 @@ cargo run -p telemetry-server
 
 `DATABASE_URL` can replace the `PG*` variables.
 
+Run the UI in a second terminal:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+The UI is served at `http://localhost:3001` and proxies `/v1` to port 18080.
+
 ```bash
 curl -i -X POST http://127.0.0.1:18080/v1/batches \
   -H 'Content-Type: application/json' \
@@ -44,7 +55,7 @@ curl -i -X POST http://127.0.0.1:18080/v1/batches \
 
 ```text
 POST /v1/batches
-GET  /v1/admin/{overview,spans,errors,traces,system}
+GET  /v1/admin/{overview,series,spans,errors,traces,system}
 GET  /v1/admin/traces/{id}
 GET  /healthz
 ```
