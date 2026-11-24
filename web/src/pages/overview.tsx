@@ -217,7 +217,6 @@ export function OverviewPage() {
                 root: "",
                 version: "",
                 errorsOnly: false,
-                cursor: null,
                 limit: 8,
             }),
         placeholderData: keepPreviousData,

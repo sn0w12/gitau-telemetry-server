@@ -28,6 +28,14 @@ export type GroupBy =
 
 export type SpanSort = "name" | "calls" | "avg" | "p50" | "p95" | "p99" | "max";
 
+export type TraceSort =
+    | "root"
+    | "received"
+    | "duration"
+    | "spans"
+    | "errors"
+    | "version";
+
 export type SortDirection = "asc" | "desc";
 
 export interface SpanBucket {
@@ -79,7 +87,6 @@ export interface TraceRow {
 
 export interface TracePage {
     traces: TraceRow[];
-    nextCursor: number | null;
     total: number;
 }
 

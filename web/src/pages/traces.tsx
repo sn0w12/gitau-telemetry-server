@@ -1,12 +1,14 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Waypoints } from "lucide-react";
+import { Waypoints, X } from "lucide-react";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 
 import { PageToolbar, RefreshButton } from "@/components/page-toolbar";
 import { RangePicker } from "@/components/range-picker";
 import { useRange } from "@/components/range-provider";
+import { SortHead } from "@/components/sort-head";
 import { EmptyBlock, QueryError, TableSkeleton } from "@/components/states";
+import { Button } from "@/components/ui/button";
 import { Frame, FrameFooter, FramePanel } from "@/components/ui/frame";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,6 +34,7 @@ import {
     formatDuration,
     formatRelative,
 } from "@/lib/format";
+import type { SortDirection, TraceSort } from "@/lib/types";
 
 export function TracesPage() {
     const { selection } = useRange();
@@ -39,11 +42,23 @@ export function TracesPage() {
     const [root, setRoot] = useState("");
     const [version, setVersion] = useState("");
     const [errorsOnly, setErrorsOnly] = useState(false);
+    const [sort, setSort] = useState<TraceSort>("received");
+    const [direction, setDirection] = useState<SortDirection>("desc");
     const deferredRoot = useDeferredValue(root);
     const deferredVersion = useDeferredValue(version);
+    const hasFilters = root !== "" || version !== "" || errorsOnly;
     const pageSize = 50;
     const [page, setPage] = useState(0);
     const listRef = useRef<HTMLDivElement>(null);
+
+    const toggleSort = (next: TraceSort) => {
+        if (next === sort) {
+            setDirection((current) => (current === "asc" ? "desc" : "asc"));
+            return;
+        }
+        setSort(next);
+        setDirection(next === "root" ? "asc" : "desc");
+    };
 
     useEffect(() => {
         setPage(0);
@@ -53,6 +68,8 @@ export function TracesPage() {
         deferredRoot,
         deferredVersion,
         errorsOnly,
+        sort,
+        direction,
     ]);
 
     const query = useQuery({
@@ -63,6 +80,8 @@ export function TracesPage() {
             deferredRoot,
             deferredVersion,
             errorsOnly,
+            sort,
+            direction,
             page,
         ],
         queryFn: () =>
@@ -71,6 +90,8 @@ export function TracesPage() {
                 root: deferredRoot,
                 version: deferredVersion,
                 errorsOnly,
+                sort,
+                direction,
                 offset: page * pageSize,
                 limit: pageSize,
             }),
@@ -131,6 +152,20 @@ export function TracesPage() {
                     />
                     Errors only
                 </label>
+                {hasFilters ? (
+                    <Button
+                        aria-label="Clear filters"
+                        onClick={() => {
+                            setRoot("");
+                            setVersion("");
+                            setErrorsOnly(false);
+                        }}
+                        size="icon-xs"
+                        variant="ghost"
+                    >
+                        <X />
+                    </Button>
+                ) : null}
             </PageToolbar>
 
             <div className="px-2 pb-2" ref={listRef}>
@@ -170,18 +205,51 @@ export function TracesPage() {
                             >
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Root</TableHead>
-                                        <TableHead>Received</TableHead>
-                                        <TableHead className="text-right">
-                                            Duration
-                                        </TableHead>
-                                        <TableHead className="text-right">
-                                            Spans
-                                        </TableHead>
-                                        <TableHead className="text-right">
-                                            Errors
-                                        </TableHead>
-                                        <TableHead>Version</TableHead>
+                                        <SortHead
+                                            activeSort={sort}
+                                            direction={direction}
+                                            label="Root"
+                                            onSort={toggleSort}
+                                            sortKey="root"
+                                        />
+                                        <SortHead
+                                            activeSort={sort}
+                                            direction={direction}
+                                            label="Received"
+                                            onSort={toggleSort}
+                                            sortKey="received"
+                                        />
+                                        <SortHead
+                                            activeSort={sort}
+                                            align="right"
+                                            direction={direction}
+                                            label="Duration"
+                                            onSort={toggleSort}
+                                            sortKey="duration"
+                                        />
+                                        <SortHead
+                                            activeSort={sort}
+                                            align="right"
+                                            direction={direction}
+                                            label="Spans"
+                                            onSort={toggleSort}
+                                            sortKey="spans"
+                                        />
+                                        <SortHead
+                                            activeSort={sort}
+                                            align="right"
+                                            direction={direction}
+                                            label="Errors"
+                                            onSort={toggleSort}
+                                            sortKey="errors"
+                                        />
+                                        <SortHead
+                                            activeSort={sort}
+                                            direction={direction}
+                                            label="Version"
+                                            onSort={toggleSort}
+                                            sortKey="version"
+                                        />
                                         <TableHead>OS</TableHead>
                                         <TableHead>CPU</TableHead>
                                     </TableRow>

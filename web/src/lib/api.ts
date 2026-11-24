@@ -11,6 +11,7 @@ import type {
     SystemStatus,
     TraceDetail,
     TracePage,
+    TraceSort,
 } from "@/lib/types";
 
 export class ApiError extends Error {
@@ -110,7 +111,8 @@ export interface TraceFilters extends TimeRange {
     version?: string;
     errorsOnly?: boolean;
     span?: string;
-    cursor?: number | null;
+    sort?: TraceSort;
+    direction?: SortDirection;
     offset?: number;
     limit?: number;
 }
@@ -123,7 +125,8 @@ export function fetchTraces(filters: TraceFilters): Promise<TracePage> {
         version: filters.version,
         errorsOnly: filters.errorsOnly || undefined,
         span: filters.span || undefined,
-        cursor: filters.cursor,
+        sort: filters.sort,
+        direction: filters.direction,
         offset: filters.offset,
         limit: filters.limit,
     });

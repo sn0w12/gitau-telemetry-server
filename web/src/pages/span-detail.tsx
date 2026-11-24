@@ -83,7 +83,6 @@ export function SpanDetailPage() {
             fetchTraces({
                 ...selection,
                 span: spanName,
-                cursor: null,
                 limit: 10,
             }),
         placeholderData: keepPreviousData,

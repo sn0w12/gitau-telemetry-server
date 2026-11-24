@@ -55,7 +55,8 @@ pub struct TraceQuery {
     build_profile: Option<String>,
     errors_only: Option<bool>,
     span: Option<String>,
-    cursor: Option<i64>,
+    sort: Option<String>,
+    direction: Option<String>,
     offset: Option<i64>,
     limit: Option<i64>,
 }
@@ -172,7 +173,6 @@ pub struct TraceRow {
 #[serde(rename_all = "camelCase")]
 pub struct TracePage {
     traces: Vec<TraceRow>,
-    next_cursor: Option<i64>,
     total: i64,
 }
 
@@ -606,48 +606,70 @@ pub async fn trace_page(
     let limit = query.limit.unwrap_or(50).clamp(1, 200);
     let offset = query.offset.unwrap_or(0).max(0);
 
-    let traces = sqlx::query_as::<_, TraceRow>(
+    let sort = query.sort.as_deref().unwrap_or("received");
+    let order_expression = match sort {
+        "root" => "root",
+        "received" => "received_at",
+        "duration" => "duration_us",
+        "spans" => "span_count",
+        "errors" => "error_count",
+        "version" => "app_version",
+        _ => {
+            return Err(ApiError::BadRequest(
+                "sort must be root, received, duration, spans, errors, or version".into(),
+            ));
+        }
+    };
+    let direction = match query.direction.as_deref().unwrap_or("desc") {
+        "asc" => "asc",
+        "desc" => "desc",
+        _ => {
+            return Err(ApiError::BadRequest("direction must be asc or desc".into()));
+        }
+    };
+
+    let sql = format!(
         "select
             id, batch_id, root, received_at, duration_us, span_count, error_count,
             app_version, build_profile, os, arch, cpu_tier
          from traces
          where received_at >= $1 and received_at < $2
-           and ($3::text is null or root = $3)
-           and ($4::text is null or app_version = $4)
+           and ($3::text is null or root ilike '%' || $3 || '%')
+           and ($4::text is null or app_version ilike '%' || $4 || '%')
            and ($5::text is null or os = $5)
            and ($6::text is null or arch = $6)
            and ($7::text is null or cpu_tier = $7)
            and ($8::text is null or build_profile = $8)
            and ($9::bool is null or (error_count > 0) = $9)
-           and ($10::bigint is null or id < $10)
-           and ($11::text is null or exists (
+           and ($10::text is null or exists (
                select 1 from spans s
-               where s.trace_id = traces.id and s.name = $11
+               where s.trace_id = traces.id and s.name = $10
            ))
-         order by id desc
-         limit $12 offset $13",
-    )
-    .bind(from)
-    .bind(to)
-    .bind(query.root.as_deref())
-    .bind(query.version.as_deref())
-    .bind(query.os.as_deref())
-    .bind(query.arch.as_deref())
-    .bind(query.cpu.as_deref())
-    .bind(query.build_profile.as_deref())
-    .bind(query.errors_only)
-    .bind(query.cursor)
-    .bind(query.span.as_deref())
-    .bind(limit)
-    .bind(offset)
-    .fetch_all(&state.pool)
-    .await?;
+         order by {order_expression} {direction}, id desc
+         limit $11 offset $12"
+    );
+
+    let traces = sqlx::query_as::<_, TraceRow>(&sql)
+        .bind(from)
+        .bind(to)
+        .bind(query.root.as_deref())
+        .bind(query.version.as_deref())
+        .bind(query.os.as_deref())
+        .bind(query.arch.as_deref())
+        .bind(query.cpu.as_deref())
+        .bind(query.build_profile.as_deref())
+        .bind(query.errors_only)
+        .bind(query.span.as_deref())
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&state.pool)
+        .await?;
 
     let total = sqlx::query_scalar::<_, i64>(
         "select count(*) from traces
          where received_at >= $1 and received_at < $2
-           and ($3::text is null or root = $3)
-           and ($4::text is null or app_version = $4)
+           and ($3::text is null or root ilike '%' || $3 || '%')
+           and ($4::text is null or app_version ilike '%' || $4 || '%')
            and ($5::text is null or os = $5)
            and ($6::text is null or arch = $6)
            and ($7::text is null or cpu_tier = $7)
@@ -671,17 +693,7 @@ pub async fn trace_page(
     .fetch_one(&state.pool)
     .await?;
 
-    let next_cursor = if traces.len() as i64 == limit {
-        traces.last().map(|trace| trace.id)
-    } else {
-        None
-    };
-
-    Ok(Json(TracePage {
-        traces,
-        next_cursor,
-        total,
-    }))
+    Ok(Json(TracePage { traces, total }))
 }
 
 pub async fn trace_detail(

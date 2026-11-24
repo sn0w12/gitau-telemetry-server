@@ -1,11 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChartNoAxesColumn, ChevronDown, ChevronUp, X } from "lucide-react";
+import { ChartNoAxesColumn, X } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 
 import { PageToolbar, RefreshButton } from "@/components/page-toolbar";
 import { RangePicker } from "@/components/range-picker";
 import { useRange } from "@/components/range-provider";
+import { SortHead } from "@/components/sort-head";
 import { EmptyBlock, QueryError, TableSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Frame, FramePanel } from "@/components/ui/frame";
@@ -21,14 +22,12 @@ import {
     Table,
     TableBody,
     TableCell,
-    TableHead,
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
 import { fetchSpans } from "@/lib/api";
 import { displayLabel, formatCount, formatDuration } from "@/lib/format";
 import type { GroupBy, SortDirection, SpanSort } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 const GROUPS: { value: GroupBy; label: string }[] = [
     { value: "name", label: "Span name" },
@@ -38,55 +37,6 @@ const GROUPS: { value: GroupBy; label: string }[] = [
     { value: "cpu", label: "CPU tier" },
     { value: "buildProfile", label: "Build profile" },
 ];
-
-function SortHead({
-    label,
-    sortKey,
-    activeSort,
-    direction,
-    align = "left",
-    onSort,
-}: {
-    label: string;
-    sortKey: SpanSort;
-    activeSort: SpanSort;
-    direction: SortDirection;
-    align?: "left" | "right";
-    onSort: (sort: SpanSort) => void;
-}) {
-    const active = activeSort === sortKey;
-
-    return (
-        <TableHead
-            aria-sort={
-                active
-                    ? direction === "asc"
-                        ? "ascending"
-                        : "descending"
-                    : "none"
-            }
-            className={cn("h-8", align === "right" && "text-right")}
-        >
-            <button
-                className={cn(
-                    "inline-flex items-center gap-1 hover:text-foreground",
-                    align === "right" && "w-full justify-end"
-                )}
-                onClick={() => onSort(sortKey)}
-                type="button"
-            >
-                {label}
-                {active ? (
-                    direction === "asc" ? (
-                        <ChevronUp className="size-3" />
-                    ) : (
-                        <ChevronDown className="size-3" />
-                    )
-                ) : null}
-            </button>
-        </TableHead>
-    );
-}
 
 export function SpansPage() {
     const { selection } = useRange();
