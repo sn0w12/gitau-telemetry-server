@@ -44,6 +44,17 @@ function isActive(pathname: string, to: NavTo): boolean {
 function AdminSidebar({ pathname }: { pathname: string }) {
     const { resolved, toggle } = useTheme();
 
+    async function signOut() {
+        try {
+            await fetch("/logout", {
+                method: "POST",
+                credentials: "same-origin",
+            });
+        } finally {
+            window.location.assign("/login");
+        }
+    }
+
     return (
         <Sidebar variant="inset" collapsible="icon">
             <TooltipProvider>
@@ -66,16 +77,14 @@ function AdminSidebar({ pathname }: { pathname: string }) {
                 </SidebarContent>
                 <SidebarFooter>
                     <SidebarMenuItem>
-                        <form action="/logout" method="post" className="w-full">
-                            <SidebarMenuButton
-                                type="submit"
-                                tooltip="Sign out"
-                                variant="ghost"
-                            >
-                                <LogOut />
-                                <span>Sign out</span>
-                            </SidebarMenuButton>
-                        </form>
+                        <SidebarMenuButton
+                            onClick={() => void signOut()}
+                            tooltip="Sign out"
+                            variant="ghost"
+                        >
+                            <LogOut />
+                            <span>Sign out</span>
+                        </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                         <SidebarMenuButton

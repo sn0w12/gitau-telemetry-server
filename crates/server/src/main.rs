@@ -450,7 +450,7 @@ mod tests {
             )
             .await
             .expect("response");
-        assert_eq!(response.status(), StatusCode::SEE_OTHER);
+        assert_eq!(response.status(), StatusCode::NO_CONTENT);
         assert!(response.headers()[header::SET_COOKIE]
             .to_str()
             .expect("cookie header")

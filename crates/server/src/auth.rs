@@ -9,7 +9,7 @@ use argon2::Argon2;
 use axum::extract::{ConnectInfo, Form, Request, State};
 use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
 use axum::middleware::Next;
-use axum::response::{IntoResponse, Redirect, Response};
+use axum::response::{IntoResponse, Response};
 use axum::Json;
 use serde::Deserialize;
 use serde_json::json;
@@ -183,7 +183,7 @@ pub async fn logout(State(state): State<AppState>, headers: HeaderMap) -> Respon
         }
     }
 
-    let mut response = Redirect::to("/login").into_response();
+    let mut response = StatusCode::NO_CONTENT.into_response();
     response
         .headers_mut()
         .insert(header::SET_COOKIE, clear_cookie(is_https(&headers)));
