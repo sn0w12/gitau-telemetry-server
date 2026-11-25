@@ -8,7 +8,3 @@ RUN npm run build
 FROM caddy:2.10-alpine
 COPY --from=ui /ui/dist /srv/admin
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
-COPY deploy/caddy/entrypoint.sh /usr/local/bin/telemetry-caddy
-RUN chmod +x /usr/local/bin/telemetry-caddy
-
-ENTRYPOINT ["/usr/local/bin/telemetry-caddy"]

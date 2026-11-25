@@ -51,8 +51,8 @@ export function Input({
                     data-slot="input"
                     size={typeof size === "number" ? size : undefined}
                     style={typeof style === "function" ? undefined : style}
-                    {...props}
                     autoComplete="off"
+                    {...props}
                 />
             ) : (
                 <InputPrimitive
@@ -60,8 +60,8 @@ export function Input({
                     data-slot="input"
                     size={typeof size === "number" ? size : undefined}
                     style={style}
-                    {...props}
                     autoComplete="off"
+                    {...props}
                 />
             )}
         </span>

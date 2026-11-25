@@ -9,6 +9,7 @@ import { RootLayout } from "@/components/layout";
 import { EmptyBlock } from "@/components/states";
 import { buttonVariants } from "@/components/ui/button";
 import { ErrorsPage } from "@/pages/errors";
+import { LoginPage } from "@/pages/login";
 import { OverviewPage } from "@/pages/overview";
 import { SpanDetailPage } from "@/pages/span-detail";
 import { SpansPage } from "@/pages/spans";
@@ -33,6 +34,12 @@ function NotFoundPage() {
 const rootRoute = createRootRoute({
     component: RootLayout,
     notFoundComponent: NotFoundPage,
+});
+
+const loginRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/login",
+    component: LoginPage,
 });
 
 const overviewRoute = createRoute({
@@ -85,6 +92,7 @@ const routeTree = rootRoute.addChildren([
     tracesRoute,
     traceDetailRoute,
     systemRoute,
+    loginRoute,
 ]);
 
 export const router = createRouter({

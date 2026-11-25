@@ -10,7 +10,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 RUN useradd --system --uid 10001 telemetry
 COPY --from=builder /app/target/release/telemetry-server /usr/local/bin/telemetry-server
+COPY deploy/server/entrypoint.sh /usr/local/bin/telemetry-entrypoint
+RUN chmod +x /usr/local/bin/telemetry-entrypoint
 USER telemetry
 EXPOSE 8080
 ENV BIND_ADDR=0.0.0.0:8080
-ENTRYPOINT ["telemetry-server"]
+ENTRYPOINT ["/usr/local/bin/telemetry-entrypoint"]

@@ -2,6 +2,7 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
     ChartNoAxesColumn,
     LayoutDashboard,
+    LogOut,
     Moon,
     ServerCog,
     Sun,
@@ -65,6 +66,18 @@ function AdminSidebar({ pathname }: { pathname: string }) {
                 </SidebarContent>
                 <SidebarFooter>
                     <SidebarMenuItem>
+                        <form action="/logout" method="post" className="w-full">
+                            <SidebarMenuButton
+                                type="submit"
+                                tooltip="Sign out"
+                                variant="ghost"
+                            >
+                                <LogOut />
+                                <span>Sign out</span>
+                            </SidebarMenuButton>
+                        </form>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
                         <SidebarMenuButton
                             onClick={toggle}
                             tooltip={
@@ -106,6 +119,14 @@ function AdminShell() {
 }
 
 export function RootLayout() {
+    const isLogin = useRouterState({
+        select: (state) => state.location.pathname === "/login",
+    });
+
+    if (isLogin) {
+        return <Outlet />;
+    }
+
     return (
         <RangeProvider>
             <AdminShell />

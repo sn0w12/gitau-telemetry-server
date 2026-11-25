@@ -39,6 +39,9 @@ services:
       ALLOW_DEBUG_TELEMETRY: ${ALLOW_DEBUG_TELEMETRY:-0}
       LOG_FORMAT: ${LOG_FORMAT:-text}
       RUST_LOG: ${RUST_LOG:-info}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
+      API_TOKEN: ${API_TOKEN:-}
     read_only: true
     tmpfs:
       - /tmp
@@ -57,9 +60,6 @@ services:
       server:
         condition: service_healthy
     environment:
-      ADMIN_USER: ${ADMIN_USER:-admin}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD}
-      API_TOKEN: ${API_TOKEN:-}
       CADDY_SITE_ADDRESS: ${CADDY_SITE_ADDRESS:-:80}
     expose:
       - "80"

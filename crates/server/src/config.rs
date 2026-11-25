@@ -16,6 +16,9 @@ pub struct Config {
     pub rate_limit_per_minute: u32,
     pub migrate_on_start: bool,
     pub allow_debug_telemetry: bool,
+    pub admin_user: String,
+    pub admin_password_hash: Option<String>,
+    pub api_token: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -28,7 +31,7 @@ impl Config {
     pub fn from_env() -> Result<Self, ConfigError> {
         let database = database_options()?;
         let bind_addr = env::var("BIND_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
-        let bind_addr = bind_addr
+        let bind_addr: SocketAddr = bind_addr
             .parse()
             .map_err(|_| ConfigError::Invalid(format!("invalid BIND_ADDR `{bind_addr}`")))?;
         let retention_days = parse_env("RETENTION_DAYS", 90i64)?;
@@ -42,6 +45,25 @@ impl Config {
         let rate_limit_per_minute = parse_env("RATE_LIMIT_PER_MINUTE", 120u32)?;
         let migrate_on_start = parse_bool("MIGRATE_ON_START", true)?;
         let allow_debug_telemetry = parse_bool("ALLOW_DEBUG_TELEMETRY", false)?;
+        let admin_user = env::var("ADMIN_USER").unwrap_or_else(|_| "admin".into());
+        let admin_password_hash = match env::var("ADMIN_PASSWORD_HASH")
+            .ok()
+            .filter(|value| !value.is_empty())
+        {
+            Some(hash) => {
+                crate::auth::validate_password_hash(&hash).map_err(|error| {
+                    ConfigError::Invalid(format!("invalid ADMIN_PASSWORD_HASH: {error}"))
+                })?;
+                Some(hash)
+            }
+            None => None,
+        };
+        if admin_password_hash.is_none() && !bind_addr.ip().is_loopback() {
+            return Err(ConfigError::Invalid(
+                "ADMIN_PASSWORD_HASH is required on a non-loopback BIND_ADDR".into(),
+            ));
+        }
+        let api_token = env::var("API_TOKEN").ok().filter(|value| !value.is_empty());
 
         Ok(Self {
             bind_addr,
@@ -52,6 +74,9 @@ impl Config {
             rate_limit_per_minute,
             migrate_on_start,
             allow_debug_telemetry,
+            admin_user,
+            admin_password_hash,
+            api_token,
         })
     }
 }

@@ -15,6 +15,8 @@ pub enum ApiError {
     RateLimited,
     #[error("not found")]
     NotFound,
+    #[error("unauthorized")]
+    Unauthorized,
     #[error(transparent)]
     Database(#[from] sqlx::Error),
     #[error("{0}")]
@@ -34,6 +36,7 @@ impl IntoResponse for ApiError {
             Self::PayloadTooLarge => (StatusCode::PAYLOAD_TOO_LARGE, "payload too large".into()),
             Self::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate limit exceeded".into()),
             Self::NotFound => (StatusCode::NOT_FOUND, "not found".into()),
+            Self::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized".into()),
             Self::Database(error) => {
                 tracing::error!(error = %error, "database request failed");
                 (

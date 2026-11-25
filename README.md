@@ -9,17 +9,24 @@ Deploy `docker-compose.yml` with Docker Compose and set:
 | Variable                | Purpose                                                           |
 | ----------------------- | ----------------------------------------------------------------- |
 | `POSTGRES_PASSWORD`     | Database password                                                 |
-| `ADMIN_PASSWORD`        | Basic auth password                                               |
+| `ADMIN_PASSWORD`        | Admin dashboard and API password                                  |
 | `ADMIN_USER`            | Optional, defaults to `admin`                                     |
 | `API_TOKEN`             | Optional bearer token for `/v1/admin/*`; empty disables it        |
 | `CADDY_PORT`            | Optional host port, defaults to `80`                              |
 | `ALLOW_DEBUG_TELEMETRY` | Optional, accepts debug builds when `1` or `true`; off by default |
 | `LOG_FORMAT`            | Optional, `text` (default) or `json` for log collectors           |
 
-Route the public domain to the `caddy` service on port 80. The Caddy entrypoint
-hashes `ADMIN_PASSWORD` at startup. `/` serves the admin UI and `/v1/admin/*`
-accepts either basic auth or `Authorization: Bearer $API_TOKEN`; `/v1/batches`
-stays public for ingest. Rebuild the Caddy image after changing `web/`.
+Route the public domain to the `caddy` service on port 80. `/login` serves the
+login page, `/` and the other UI routes require a session cookie, and
+`/v1/admin/*` accepts that cookie or `Authorization: Bearer $API_TOKEN`.
+`/v1/batches` stays public for ingest. Rebuild the Caddy image after changing
+`web/`.
+
+The server image hashes `ADMIN_PASSWORD` with Argon2id in its entrypoint, then
+unsets the plaintext before starting the server. The server process only sees
+the hash. On a non-loopback `BIND_ADDR` it refuses to start without one, which
+the entrypoint supplies automatically. Local development on `127.0.0.1` can run
+without a password.
 
 ## Local development
 
@@ -63,17 +70,24 @@ POST /v1/batches
 GET  /v1/admin/{overview,series,spans,errors,traces,system}
 GET  /v1/admin/traces/{id}
 GET  /healthz
+POST /auth/login
+POST /logout
+GET  /auth/verify
 ```
 
 `POST /v1/batches` returns 400 for batches whose `buildProfile` is `debug` or
 `dev` unless `ALLOW_DEBUG_TELEMETRY` is enabled.
 
-Admin endpoints accept a bearer token instead of basic auth:
+Admin endpoints accept the session cookie from the login page or a bearer
+token:
 
 ```bash
 curl -H "Authorization: Bearer $API_TOKEN" \
   'https://telemetry.example.com/v1/admin/overview'
 ```
+
+`POST /logout` clears the session cookie. Sessions live in server memory and
+expire after seven days, so a restart signs everyone out.
 
 ## Checks
 

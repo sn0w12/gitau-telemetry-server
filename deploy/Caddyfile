@@ -23,29 +23,41 @@
 		reverse_proxy server:8080
 	}
 
-	@api_token {
-		path /v1/admin/*
-		header Authorization "Bearer {$API_TOKEN}"
+	handle /login {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
 	}
 
-	handle @api_token {
+	handle /assets/* {
+		root * /srv/admin
+		file_server
+	}
+
+	handle /favicon.svg {
+		root * /srv/admin
+		file_server
+	}
+
+	handle /logout {
 		reverse_proxy server:8080 {
 			header_up X-Forwarded-For {client_ip}
 		}
 	}
 
+	handle /auth/* {
+		reverse_proxy server:8080
+	}
+
 	handle /v1/admin/* {
-		basic_auth {
-			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
-		}
 		reverse_proxy server:8080 {
 			header_up X-Forwarded-For {client_ip}
 		}
 	}
 
 	handle {
-		basic_auth {
-			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+		forward_auth server:8080 {
+			uri /auth/verify
 		}
 		root * /srv/admin
 		try_files {path} /index.html

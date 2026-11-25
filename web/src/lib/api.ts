@@ -37,6 +37,11 @@ async function get<T>(path: string, params: Params = {}): Promise<T> {
         credentials: "same-origin",
         headers: { Accept: "application/json" },
     });
+    if (response.status === 401) {
+        const next = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+        throw new ApiError(401, "unauthorized");
+    }
     if (!response.ok) {
         let message = response.statusText || `HTTP ${response.status}`;
         try {
