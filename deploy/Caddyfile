@@ -56,12 +56,14 @@
 	}
 
 	handle {
-		forward_auth server:8080 {
-			uri /auth/verify
+		route {
+			forward_auth server:8080 {
+				uri /auth/verify
+			}
+			root * /srv/admin
+			try_files {path} /index.html
+			file_server
 		}
-		root * /srv/admin
-		try_files {path} /index.html
-		file_server
 	}
 
 	header {

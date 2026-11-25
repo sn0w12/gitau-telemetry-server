@@ -142,7 +142,7 @@ fn app(state: AppState) -> Router {
     Router::new()
         .route("/healthz", get(health))
         .route("/v1/batches", post(ingest::ingest))
-        .route("/login", post(auth::login))
+        .route("/auth/login", post(auth::login))
         .route("/logout", post(auth::logout))
         .route("/auth/verify", get(auth::verify))
         .merge(admin)
@@ -313,7 +313,7 @@ mod tests {
     fn form(body: &str) -> Request<Body> {
         Request::builder()
             .method("POST")
-            .uri("/login")
+            .uri("/auth/login")
             .header(header::CONTENT_TYPE, "application/x-www-form-urlencoded")
             .body(Body::from(body.to_owned()))
             .expect("request")
